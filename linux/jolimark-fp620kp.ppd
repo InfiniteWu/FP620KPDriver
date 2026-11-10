@@ -72,7 +72,7 @@
 *OpenUI *Resolution/Output Resolution: PickOne
 *OrderDependency: 10 AnySetup *Resolution
 *DefaultResolution: 360x180dpi
-*Resolution 360x180dpi/360 x 180 dpi (sharp text, default): "<</HWResolution[360 180]>>setpagedevice"
+*Resolution 360x180dpi/360 x 180 dpi (high quality): "<</HWResolution[360 360]>>setpagedevice"
 *Resolution 180x180dpi/180 x 180 dpi (fast draft): "<</HWResolution[180 180]>>setpagedevice"
 *Resolution 360x360dpi/360 x 360 dpi (interlaced, heavy): "<</HWResolution[360 360]>>setpagedevice"
 *CloseUI: *Resolution

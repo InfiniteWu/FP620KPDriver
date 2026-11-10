@@ -27,6 +27,11 @@
  *     -o fp620k-origin-y=<points>
  *     -o PrintDirection=Unidirectional|Bidirectional
  *     -o fp620k-unidirectional=0|1
+ *     -o fp620k-output-y=180|360
+ *
+ * 360x180 is a high-quality mode: CUPS rasterizes at 360x360 and the filter
+ * combines pairs of rows (OR) into 180 dpi.  Rendering CJK text directly at
+ * 180 dpi makes Ghostscript drop many one-pixel horizontal strokes.
  *
  * Unidirectional printing is the default.  The printer's own "print
  * direction" setting defaults to AUTO, and neither this filter nor the
@@ -42,10 +47,23 @@
  *
  * Copyright (C) 2026
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
  */
 
 #include <cups/cups.h>
@@ -304,20 +322,63 @@ is_black(const cups_page_header2_t *h, const unsigned char *row,
  */
 
 static int
-print_page(cups_raster_t *ras, const cups_page_header2_t *h, FILE *out)
+print_page(cups_raster_t *ras, const cups_page_header2_t *h,
+           const char *options, FILE *out)
 {
   const struct resolution *res;
   unsigned	width, height, bpl, max_cols, block_rows, passes, pass;
+  unsigned	out_ydpi, combine, out_height;
   unsigned char	*row = NULL, *band = NULL, *data = NULL;
-  unsigned	x, y, r, i, pin, src;
+  unsigned	x, y, r, k, i, pin, src;
   long		start_col, indent, feed, pos;
   long		top_pt;
   int		ok = 0;
 
-  if ((res = find_resolution(h->HWResolution[0], h->HWResolution[1])) == NULL)
+  /*
+   * 360x180 is rendered by CUPS at 360x360 and then reduced vertically
+   * by OR-ing pairs of source rows.  Ghostscript drops many one-pixel
+   * horizontal strokes when it rasterizes CJK text directly at 180 dpi;
+   * rendering at 360 dpi first and combining the rows keeps them.
+   */
+
+  out_ydpi = h->HWResolution[1];
+  combine  = 1;
+
+  {
+    const char *output_y = get_option(options, "fp620k-output-y");
+
+    if (output_y)
+    {
+      unsigned requested = (unsigned)atoi(output_y);
+
+      if (requested == 180 || requested == 360)
+        out_ydpi = requested;
+    }
+    else if (h->HWResolution[0] == 360 && h->HWResolution[1] == 360)
+    {
+      const char *resolution = get_option(options, "Resolution");
+
+      if (resolution && !strcmp(resolution, "360x180dpi"))
+      {
+        out_ydpi = 180;
+        combine  = 2;
+      }
+    }
+  }
+
+  if (out_ydpi == 180 && h->HWResolution[1] == 360)
+    combine = 2;
+  else if (out_ydpi != h->HWResolution[1])
+  {
+    fprintf(stderr, "ERROR: " FILTER_NAME ": cannot convert %u dpi to %u dpi\n",
+            h->HWResolution[1], out_ydpi);
+    return (0);
+  }
+
+  if ((res = find_resolution(h->HWResolution[0], out_ydpi)) == NULL)
   {
     fprintf(stderr, "ERROR: " FILTER_NAME ": unsupported resolution %ux%u\n",
-            h->HWResolution[0], h->HWResolution[1]);
+            h->HWResolution[0], out_ydpi);
     return (0);
   }
 
@@ -339,6 +400,7 @@ print_page(cups_raster_t *ras, const cups_page_header2_t *h, FILE *out)
   width  = h->cupsWidth;
   height = h->cupsHeight;
   bpl    = h->cupsBytesPerLine;
+  out_height = (height + combine - 1) / combine;
 
   if (width == 0 || height == 0 || bpl == 0)
   {
@@ -371,7 +433,7 @@ print_page(cups_raster_t *ras, const cups_page_header2_t *h, FILE *out)
     indent = 0;
   }
 
-  feed = lround((top_pt - origin_y_pt) * h->HWResolution[1] / 72.0);
+  feed = lround((top_pt - origin_y_pt) * out_ydpi / 72.0);
   if (feed < 0)
     feed = 0;
 
@@ -380,19 +442,19 @@ print_page(cups_raster_t *ras, const cups_page_header2_t *h, FILE *out)
   /*
    * 360x360 needs two physical passes: with a 24-pin head the odd source
    * rows can only be printed after a 1/360 inch paper step.  Every other
-   * resolution is a single pass of 24 rows.
+   * output resolution is a single pass of 24 rows.
    */
 
-  block_rows = h->HWResolution[1] >= 360 ? 48 : 24;
-  passes     = h->HWResolution[1] >= 360 ? 2 : 1;
+  block_rows = out_ydpi >= 360 ? 48 : 24;
+  passes     = out_ydpi >= 360 ? 2 : 1;
 
   if (verbose)
-    fprintf(stderr, "DEBUG: " FILTER_NAME ": page %ux%u px, %ux%u dpi, "
-            "left margin %dpt, top margin %ldpt, indent %ld, clip %ld, "
-            "feed %ld, block %u rows, %u pass(es)\n",
+    fprintf(stderr, "DEBUG: " FILTER_NAME ": page %ux%u px, in %ux%u dpi, "
+            "out %ux%u dpi, combine %u, left margin %dpt, top margin %ldpt, "
+            "indent %ld, clip %ld, feed %ld, block %u rows, %u pass(es)\n",
             width, height, h->HWResolution[0], h->HWResolution[1],
-            h->Margins[0], top_pt, indent, start_col, feed, block_rows,
-            passes);
+            h->HWResolution[0], out_ydpi, combine, h->Margins[0], top_pt,
+            indent, start_col, feed, block_rows, passes);
 
   row  = malloc(bpl);
   band = calloc((size_t)block_rows * width, 1);
@@ -406,12 +468,13 @@ print_page(cups_raster_t *ras, const cups_page_header2_t *h, FILE *out)
 
   start_page(out, res);
 
-  feed_rows(out, feed, h->HWResolution[1]);
+  feed_rows(out, feed, out_ydpi);
   pos = feed;
 
-  for (y = 0; y < height; y += block_rows)
+  for (y = 0; y < out_height; y += block_rows)
   {
-    unsigned rows = height - y < block_rows ? height - y : block_rows;
+    unsigned rows = out_height - y < block_rows ? out_height - y : block_rows;
+    unsigned src_y = y * combine;
     unsigned last = start_col;
     int any = 0;
 
@@ -419,18 +482,26 @@ print_page(cups_raster_t *ras, const cups_page_header2_t *h, FILE *out)
 
     for (r = 0; r < rows; r ++)
     {
-      if (cupsRasterReadPixels(ras, row, bpl) != bpl)
-      {
-        fprintf(stderr, "ERROR: " FILTER_NAME ": short raster row\n");
-        goto out;
-      }
+      unsigned sr = src_y + r * combine;
 
-      for (x = start_col; x < width; x ++)
+      if (sr >= height)
+        break;
+
+      for (k = 0; k < combine && sr + k < height; k ++)
       {
-        if (is_black(h, row, x))
+        if (cupsRasterReadPixels(ras, row, bpl) != bpl)
         {
-          band[(size_t)r * width + x] = 1;
-          any = 1;
+          fprintf(stderr, "ERROR: " FILTER_NAME ": short raster row\n");
+          goto out;
+        }
+
+        for (x = start_col; x < width; x ++)
+        {
+          if (is_black(h, row, x))
+          {
+            band[(size_t)r * width + x] = 1;
+            any = 1;
+          }
         }
       }
     }
@@ -515,12 +586,12 @@ print_page(cups_raster_t *ras, const cups_page_header2_t *h, FILE *out)
 
         if (pass == 0)
         {
-          feed_rows(out, (long)y + feed - pos, h->HWResolution[1]);
+          feed_rows(out, (long)y + feed - pos, out_ydpi);
           pos = (long)y + feed;
         }
         else
         {
-          feed_rows(out, 1, h->HWResolution[1]);
+          feed_rows(out, 1, out_ydpi);
           pos += 1;
         }
 
@@ -604,7 +675,7 @@ main(int argc, char *argv[])
   {
     pages ++;
 
-    if (!print_page(ras, &header, stdout))
+    if (!print_page(ras, &header, options, stdout))
     {
       status = 1;
       break;

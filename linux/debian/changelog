@@ -1,3 +1,12 @@
+printer-driver-fp620kp (0.1.1) unstable; urgency=medium
+
+  * Fix missing horizontal strokes in small CJK text at 360x180: ask CUPS
+    for a 360x360 raster and combine row pairs back to 180 dpi, keeping the
+    single-pass 360x180 output.
+  * Use the MIT license consistently in the source headers.
+
+ -- johnwoo <johnwoo@example.com>  Tue, 10 Nov 2026 15:41:00 +0800
+
 printer-driver-fp620kp (0.1.0) unstable; urgency=medium
 
   * Initial release.

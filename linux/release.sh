@@ -4,7 +4,7 @@
 #
 set -eu
 
-VERSION="${VERSION:-0.1.0}"
+VERSION="${VERSION:-0.1.1}"
 HERE=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 OUT="${OUT:-$HERE/../release}"
 PKG="fp620kp-linux-$VERSION"

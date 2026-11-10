@@ -1,0 +1,21 @@
+Source: printer-driver-fp620kp
+Section: text
+Priority: optional
+Maintainer: johnwoo <johnwoo@example.com>
+Build-Depends: debhelper-compat (= 13), libcups2-dev
+Standards-Version: 4.7.0
+Rules-Requires-Root: no
+
+Package: printer-driver-fp620kp
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, cups, cups-filters, ghostscript
+Recommends: system-config-printer
+Description: CUPS driver for the Jolimark FP-620K+ 24-pin printer
+ This package provides a CUPS filter, backend and PPD for the Jolimark
+ FP-620K+ 24-pin dot matrix printer.  The filter generates ESC/P2K
+ graphics directly, supports 180x180, 360x180 and 360x360 dpi modes,
+ and defaults to unidirectional printing so vertical lines stay straight.
+ .
+ The backend reads the USB printer status through LPGETSTATUS and
+ reports paper-out and offline conditions to CUPS.  A small helper,
+ fp620kp-setup, creates the print queue after the driver is installed.

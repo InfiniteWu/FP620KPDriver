@@ -1,0 +1,35 @@
+# Vendor Windows driver package (not part of the Linux source)
+/Autorun.exe
+/JMP_RW.dll
+/Setup.exe
+/Setup.ini
+/autorun.inf
+/gdiplus.dll
+/Drivers/
+/Facility User's Guide/
+/Manual/
+/PDF Reader/
+/Resource/
+/Tools and Instruction/
+
+# Build and packaging output
+/release/
+/linux/rastertofp620kp
+/linux/fp620kp
+/linux/src/*.o
+/linux/tools/lpgstatus
+/linux/tools/pjl_probe
+/linux/debian/.debhelper/
+/linux/debian/debhelper-build-stamp
+/linux/debian/files
+/linux/debian/tmp/
+/linux/debian/printer-driver-fp620kp/
+/linux/debian/*.substvars
+/linux/debian/*.debhelper.log
+*.deb
+*.ddeb
+*.buildinfo
+*.changes
+
+# Local export/duplicate of the README
+/linux/Jolimark FP-620K+ Linux CUPS 驱动.md

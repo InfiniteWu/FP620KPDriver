@@ -1,0 +1,4 @@
+usr/lib/cups/filter/rastertofp620kp
+usr/lib/cups/backend/fp620kp
+usr/share/cups/model/jolimark-fp620kp.ppd
+debian/fp620kp-setup usr/sbin

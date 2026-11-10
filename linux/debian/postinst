@@ -1,0 +1,14 @@
+#!/bin/sh
+set -e
+
+if [ "$1" = "configure" ]; then
+    if [ -e /dev/usb/lp0 ]; then
+        echo "检测到 USB 打印机。运行 'sudo fp620kp-setup' 创建 FP620K 打印队列。"
+    else
+        echo "连接打印机后运行 'sudo fp620kp-setup' 创建 FP620K 打印队列。"
+    fi
+fi
+
+#DEBHELPER#
+
+exit 0

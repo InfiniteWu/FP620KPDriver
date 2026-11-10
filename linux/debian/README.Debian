@@ -1,0 +1,29 @@
+Jolimark FP-620K+ CUPS driver
+=============================
+
+This package installs the CUPS filter, backend and PPD.  It does not create
+a print queue automatically, because a package should not change the user's
+printer configuration without asking.
+
+Create or update the queue with:
+
+    sudo fp620kp-setup
+
+To make it the system default printer and print the calibration page:
+
+    sudo fp620kp-setup --default --test
+
+The setup helper looks for /dev/usb/lp0 first.  If your printer is bound to a
+different node, pass it explicitly:
+
+    sudo fp620kp-setup --device /dev/usb/lp1
+
+The queue name defaults to FP620K; use --name to change it.
+
+You can also add the printer through the desktop printer settings or the CUPS
+web interface at http://localhost:631/.  The PPD is installed as
+/usr/share/cups/model/jolimark-fp620kp.ppd.
+
+Default job options are 360x180 dpi and unidirectional printing.  Use
+"lp -d FP620K -o Resolution=180x180dpi file.pdf" for the faster 180x180 mode,
+or "PrintDirection=Bidirectional" if speed matters more than straight lines.

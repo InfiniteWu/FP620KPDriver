@@ -1,0 +1,9 @@
+printer-driver-fp620kp (0.1.0) unstable; urgency=medium
+
+  * Initial release.
+  * CUPS filter and USB backend for ESC/P2K, with status readback.
+  * PPD with 180x180, 360x180 and 360x360 dpi modes; 360x180
+    unidirectional is the default.
+  * Add fp620kp-setup helper for queue creation.
+
+ -- johnwoo <johnwoo@example.com>  Tue, 10 Nov 2026 12:15:00 +0800

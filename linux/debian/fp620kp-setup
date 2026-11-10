@@ -1,0 +1,128 @@
+#!/bin/sh
+#
+# Create or update the CUPS queue for a Jolimark FP-620K+.
+#
+set -eu
+
+NAME="${FP620K_QUEUE:-FP620K}"
+DEVICE="${FP620K_DEVICE:-}"
+TEST=0
+SET_DEFAULT=0
+
+usage()
+{
+    cat <<'EOF'
+Usage: sudo fp620kp-setup [options]
+
+Options:
+  -d, --device PATH   USB printer device (default: first /dev/usb/lp*)
+  -n, --name NAME     CUPS queue name (default: FP620K)
+      --default       Set the queue as the system default printer
+      --test          Print the calibration page after setup
+  -h, --help          Show this help
+EOF
+}
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        -d|--device)
+            [ $# -ge 2 ] || { usage >&2; exit 2; }
+            DEVICE=$2
+            shift 2
+            ;;
+        -n|--name)
+            [ $# -ge 2 ] || { usage >&2; exit 2; }
+            NAME=$2
+            shift 2
+            ;;
+        --default)
+            SET_DEFAULT=1
+            shift
+            ;;
+        --test)
+            TEST=1
+            shift
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $1" >&2
+            usage >&2
+            exit 2
+            ;;
+    esac
+done
+
+if [ "$(id -u)" -ne 0 ]; then
+    echo "请使用 sudo 运行：sudo fp620kp-setup" >&2
+    exit 1
+fi
+
+if ! command -v lpadmin >/dev/null 2>&1; then
+    echo "找不到 lpadmin，请先安装 cups。" >&2
+    exit 1
+fi
+
+if ! lpstat -r >/dev/null 2>&1; then
+    echo "CUPS 服务未运行，请先启动 cups。" >&2
+    exit 1
+fi
+
+if [ -z "$DEVICE" ]; then
+    if [ -e /dev/usb/lp0 ]; then
+        DEVICE=/dev/usb/lp0
+    else
+        DEVICE=$(ls /dev/usb/lp* 2>/dev/null | head -n 1 || true)
+    fi
+fi
+
+if [ -z "$DEVICE" ] || [ ! -e "$DEVICE" ]; then
+    echo "找不到 USB 打印机设备（/dev/usb/lp*）。" >&2
+    echo "请确认打印机已开机并连接，然后检查：ls -l /dev/usb/lp*" >&2
+    exit 1
+fi
+
+PPD=/usr/share/cups/model/jolimark-fp620kp.ppd
+if [ ! -f "$PPD" ]; then
+    echo "找不到 PPD：$PPD" >&2
+    exit 1
+fi
+
+if lpstat -p "$NAME" >/dev/null 2>&1; then
+    echo "更新已有队列 $NAME ..."
+else
+    echo "创建队列 $NAME ..."
+fi
+
+lpadmin -p "$NAME" -E \
+    -v "fp620kp:$DEVICE" \
+    -P "$PPD" \
+    -o Resolution=360x180dpi \
+    -o PrintDirection=Unidirectional \
+    -o PageSize=A4
+
+if [ "$SET_DEFAULT" -eq 1 ]; then
+    lpadmin -d "$NAME"
+    echo "已设为系统默认打印机。"
+fi
+
+echo "队列 $NAME 已就绪："
+echo "  设备: fp620kp:$DEVICE"
+lpstat -p "$NAME" -l | sed 's/^/  /'
+
+if [ "$TEST" -eq 1 ]; then
+    CALIBRATION=/usr/share/doc/printer-driver-fp620kp/calibration.ps
+    if [ ! -f "$CALIBRATION" ]; then
+        echo "找不到校准页，跳过测试打印。" >&2
+    else
+        echo "正在打印校准页 ..."
+        lp -d "$NAME" \
+            -o Resolution=360x180dpi \
+            -o PrintDirection=Unidirectional \
+            -o PageSize=A4 \
+            -t "FP620K calibration" \
+            "$CALIBRATION"
+    fi
+fi

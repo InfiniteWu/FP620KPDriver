@@ -1,0 +1,17 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@
+
+override_dh_auto_install:
+	$(MAKE) install DESTDIR=$(CURDIR)/debian/tmp
+
+override_dh_fixperms:
+	dh_fixperms
+	chmod 0700 debian/printer-driver-fp620kp/usr/lib/cups/backend/fp620kp
+
+override_dh_dwz:
+	@:
+
+override_dh_strip:
+	dh_strip --no-automatic-dbgsym

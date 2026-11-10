@@ -1,0 +1,47 @@
+.TH FP620KP-SETUP 1 "2026-11-10" "printer-driver-fp620kp 0.1.0" "User Commands"
+.SH NAME
+fp620kp-setup \- create or update a CUPS queue for the Jolimark FP-620K+
+.SH SYNOPSIS
+.B sudo fp620kp-setup
+.RI [ options ]
+.SH DESCRIPTION
+.B fp620kp-setup
+creates or updates a CUPS print queue that uses the
+.B fp620kp
+backend and the installed
+.IR jolimark-fp620kp.ppd .
+It defaults to the first USB printer device,
+.IR /dev/usb/lp0 ,
+and to the queue name
+.IR FP620K .
+.PP
+The queue is configured for 360x180 dpi and unidirectional printing.
+.SH OPTIONS
+.TP
+.BR \-d ", " \-\-device " " \fIPATH\fR
+Use the USB printer device at
+.IR PATH .
+.TP
+.BR \-n ", " \-\-name " " \fINAME\fR
+Use
+.IR NAME
+as the CUPS queue name.
+.TP
+.B \-\-default
+Set the new queue as the system default printer.
+.TP
+.B \-\-test
+Print the calibration page after the queue has been created.
+.TP
+.BR \-h ", " \-\-help
+Show a short help message.
+.SH EXAMPLES
+.nf
+sudo fp620kp-setup
+sudo fp620kp-setup --device /dev/usb/lp1 --name FP620K2
+sudo fp620kp-setup --default --test
+.fi
+.SH SEE ALSO
+.BR lpadmin (8),
+.BR lp (1),
+.BR lpstat (1)

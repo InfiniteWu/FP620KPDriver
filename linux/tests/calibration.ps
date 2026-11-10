@@ -1,0 +1,82 @@
+%!PS-Adobe-3.0
+%%Title: Jolimark FP-620K+ calibration page
+%%Pages: 1
+%%BoundingBox: 0 0 595 842
+%%EndComments
+<< /PageSize [595 842] >> setpagedevice
+
+% Everything is in PostScript points (72 per inch), origin bottom-left.
+0 setgray
+
+% Imageable-area border: 18 pt left/right, 36 pt top/bottom.
+2 setlinewidth
+18 36 moveto
+577 36 lineto
+577 806 lineto
+18 806 lineto
+closepath
+stroke
+
+% One inch from the left edge.
+1 setlinewidth
+72 36 moveto
+72 806 lineto
+stroke
+
+% One inch from the top edge (842 - 72 = 770).
+18 770 moveto
+577 770 lineto
+stroke
+
+% Center cross.
+297.5 385 moveto
+297.5 457 lineto
+261.5 421 moveto
+333.5 421 lineto
+stroke
+
+% Ruler ticks on the top border, every 10 mm, longer every 50 mm.
+/Helvetica findfont 7 scalefont setfont
+0 1 50 {
+  /i exch def
+  /x i 28.3464567 mul 18 add def
+  x 806 moveto
+  x i 5 mod 0 eq { 796 } { 801 } ifelse lineto
+  stroke
+  i 5 mod 0 eq {
+    x 3 sub 786 moveto
+    i 10 mul 5 string cvs show
+  } if
+} for
+
+% Text block.
+/Helvetica-Bold findfont 16 scalefont setfont
+36 730 moveto
+(Jolimark FP-620K+  ESC/P2K test page) show
+
+/Helvetica findfont 10 scalefont setfont
+36 700 moveto
+(Border: 6 mm from left/right, 13 mm from top/bottom.) show
+36 685 moveto
+(Vertical line: 1 inch (25.4 mm) from the left edge.) show
+36 670 moveto
+(Horizontal line: 1 inch (25.4 mm) from the top edge.) show
+36 650 moveto
+(Resolution 180 x 180 dpi, filter rastertofp620kp.) show
+
+% A few line patterns to check pin alignment.
+36 600 moveto
+0 1 23 { 36 add 600 moveto 0 8 rlineto 4 0 rlineto stroke } for
+36 580 moveto
+(ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789) show
+36 565 moveto
+(abcdefghijklmnopqrstuvwxyz  !"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~) show
+
+% Solid blocks of increasing width.
+0 setgray
+36 500 60 20 rectfill
+106 500 20 20 rectfill
+136 500 5 20 rectfill
+
+showpage
+%%EOF

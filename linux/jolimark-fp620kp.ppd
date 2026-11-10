@@ -1,0 +1,103 @@
+*PPD-Adobe: "4.3"
+*%
+*% CUPS PPD for the Jolimark FP-620K+ 24-pin dot-matrix printer.
+*%
+*% The rastertofp620kp filter converts CUPS raster data into the ESC/P2K
+*% block-graphics commands used by the vendor's Windows driver.
+*%
+*FormatVersion: "4.3"
+*FileVersion: "1.0"
+*LanguageVersion: English
+*LanguageEncoding: ISOLatin1
+*PCFileName: "FP620KP.PPD"
+*Manufacturer: "Jolimark"
+*Product: "(FP-620K+)"
+*ModelName: "Jolimark FP-620K+"
+*ShortNickName: "Jolimark FP-620K+"
+*NickName: "Jolimark FP-620K+ ESC/P2K"
+*PSVersion: "(3010.000) 0"
+*LanguageLevel: "3"
+*ColorDevice: False
+*DefaultColorSpace: Gray
+*FileSystem: False
+*Throughput: "1"
+*LandscapeOrientation: Plus90
+*cupsVersion: 2.4
+*cupsManualCopies: False
+*cupsFilter: "application/vnd.cups-raster 0 rastertofp620kp"
+*1284DeviceID: "MFG:Jolimark;CMD:ESC/P2K;MDL:FP-620K+;"
+
+*% The filter understands two hidden job options for field calibration:
+*%   -o fp620k-origin-x=<points>   left mechanical origin (default 24)
+*%   -o fp620k-origin-y=<points>   top mechanical origin (default 11.6)
+
+*OpenUI *PageSize/Media Size: PickOne
+*OrderDependency: 10 AnySetup *PageSize
+*DefaultPageSize: A4
+*PageSize A4/A4: "<</PageSize[595 842]/ImagingBBox null>>setpagedevice"
+*PageSize A5/A5: "<</PageSize[420 595]/ImagingBBox null>>setpagedevice"
+*PageSize B5/B5: "<</PageSize[516 729]/ImagingBBox null>>setpagedevice"
+*PageSize Letter/US Letter: "<</PageSize[612 792]/ImagingBBox null>>setpagedevice"
+*PageSize Legal/US Legal: "<</PageSize[612 1008]/ImagingBBox null>>setpagedevice"
+*PageSize Executive/Executive: "<</PageSize[522 756]/ImagingBBox null>>setpagedevice"
+*CloseUI: *PageSize
+
+*OpenUI *PageRegion/Media Region: PickOne
+*OrderDependency: 10 AnySetup *PageRegion
+*DefaultPageRegion: A4
+*PageRegion A4/A4: "<</PageSize[595 842]/ImagingBBox null>>setpagedevice"
+*PageRegion A5/A5: "<</PageSize[420 595]/ImagingBBox null>>setpagedevice"
+*PageRegion B5/B5: "<</PageSize[516 729]/ImagingBBox null>>setpagedevice"
+*PageRegion Letter/US Letter: "<</PageSize[612 792]/ImagingBBox null>>setpagedevice"
+*PageRegion Legal/US Legal: "<</PageSize[612 1008]/ImagingBBox null>>setpagedevice"
+*PageRegion Executive/Executive: "<</PageSize[522 756]/ImagingBBox null>>setpagedevice"
+*CloseUI: *PageRegion
+
+*DefaultImageableArea: A4
+*ImageableArea A4/A4: "18 36 577 806"
+*ImageableArea A5/A5: "18 36 402 559"
+*ImageableArea B5/B5: "18 36 498 693"
+*ImageableArea Letter/US Letter: "18 36 594 756"
+*ImageableArea Legal/US Legal: "18 36 594 972"
+*ImageableArea Executive/Executive: "18 36 504 720"
+
+*DefaultPaperDimension: A4
+*PaperDimension A4/A4: "595 842"
+*PaperDimension A5/A5: "420 595"
+*PaperDimension B5/B5: "516 729"
+*PaperDimension Letter/US Letter: "612 792"
+*PaperDimension Legal/US Legal: "612 1008"
+*PaperDimension Executive/Executive: "522 756"
+
+*OpenUI *Resolution/Output Resolution: PickOne
+*OrderDependency: 10 AnySetup *Resolution
+*DefaultResolution: 360x180dpi
+*Resolution 360x180dpi/360 x 180 dpi (sharp text, default): "<</HWResolution[360 180]>>setpagedevice"
+*Resolution 180x180dpi/180 x 180 dpi (fast draft): "<</HWResolution[180 180]>>setpagedevice"
+*Resolution 360x360dpi/360 x 360 dpi (interlaced, heavy): "<</HWResolution[360 360]>>setpagedevice"
+*CloseUI: *Resolution
+
+*OpenUI *ColorModel/Color Mode: PickOne
+*OrderDependency: 10 AnySetup *ColorModel
+*DefaultColorModel: Gray
+*ColorModel Gray/Grayscale: "<</cupsColorSpace 3/cupsBitsPerColor 1/cupsColorOrder 0/cupsCompression 0>>setpagedevice"
+*CloseUI: *ColorModel
+
+*OpenUI *PrintDirection/Print Direction: PickOne
+*OrderDependency: 10 AnySetup *PrintDirection
+*DefaultPrintDirection: Unidirectional
+*PrintDirection Unidirectional/Quality (unidirectional): ""
+*PrintDirection Bidirectional/Speed (bidirectional): ""
+*CloseUI: *PrintDirection
+
+*% Default to the internal font / no special options.
+*DefaultFont: Courier
+*Font Courier/Courier: Standard
+
+*OpenUI *InputSlot/Paper Source: PickOne
+*OrderDependency: 10 AnySetup *InputSlot
+*DefaultInputSlot: Auto
+*InputSlot Auto/Automatic: ""
+*InputSlot Tractor/Tractor Feed: ""
+*InputSlot Manual/Manual Feed: ""
+*CloseUI: *InputSlot
